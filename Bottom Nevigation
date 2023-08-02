@@ -1,0 +1,117 @@
+// implementation 'com.google.android.material:material:1.4.0'
+
+-------------------------------- Style -------------------
+
+ <style name="BottomNavigationThemeCustom">
+        <item name="enforceTextAppearance">true</item>
+        <item name="enforceMaterialTheme">true</item>
+        <item name="android:background">#181a20</item>
+        <item name="itemIconTint">@drawable/bottom_navigation_bar_icon_color</item>
+        <item name="itemRippleColor">@color/mtrl_navigation_bar_colored_ripple_color</item>
+        <item name="itemTextAppearanceInactive">?attr/textAppearanceCaption</item>
+        <item name="itemTextAppearanceActive">?attr/textAppearanceCaption</item>
+        <item name="itemTextColor">@drawable/bottom_navigation_bar_icon_color</item>
+    </style>
+
+---------------------------- Drawal File --------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:color="#181a20" />
+    <item android:color="@color/item_unselected"  />
+</selector>
+
+ <color name="item_unselected">#607286</color>
+
+
+------------------------------------------ Menu ---------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/action_home"
+        android:title="home"
+        android:icon="@drawable/ic_chat_24"
+        app:showAsAction="always"/>
+    <item android:id="@+id/action_chat"
+        android:title="chat"
+        android:icon="@drawable/ic_chat_24"
+        app:showAsAction="always"/>
+    <item android:id="@+id/action_upload_product"
+        android:title=""
+        app:showAsAction="always"/>
+    <item android:id="@+id/speech"
+        android:title="speech"
+        android:icon="@drawable/ic_chat_24"
+        app:showAsAction="always"/>
+    <item android:id="@+id/action_settings"
+        android:title="account"
+        android:icon="@drawable/ic_chat_24"
+        app:showAsAction="always"/>
+</menu>
+
+
+
+------------------------------- Activity XML code ------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".AddData">
+
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+
+
+
+
+
+
+
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottomAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:layout_gravity="bottom"
+        android:backgroundTint="@color/white"
+        app:fabCradleMargin="10dp"
+        app:fabCradleRoundedCornerRadius="10dp"
+        app:fabCradleVerticalOffset="10dp"
+        app:theme="@style/Theme.MaterialComponents">
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation_menu"
+            style="@style/BottomNavigationThemeCustom"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="16dp"
+            android:background="@android:color/transparent"
+            app:elevation="0dp"
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/bottom_nav_menu" />
+
+    </com.google.android.material.bottomappbar.BottomAppBar>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/main_blue"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/ic_chat_24"
+        app:layout_anchor="@id/bottomAppBar"
+        app:tint="@color/white" />
+
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+
+
