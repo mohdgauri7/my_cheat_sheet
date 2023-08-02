@@ -1,0 +1,63 @@
+
+class FiltersAdapter(private val filters: List<String>, private val context: Context) :
+    RecyclerView.Adapter<FiltersAdapter.FilterViewHolder>() {
+
+    interface OnItemClickListener {
+        fun onFilterSelected(filter: String)
+    }
+
+    private var mListener: OnItemClickListener? = null
+    private var selectedPosition = 0
+
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        mListener = listener
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FilterViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_filter, parent, false)
+        return FilterViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: FilterViewHolder, @SuppressLint("RecyclerView") position: Int) {
+        val filter = filters[position]
+
+        holder.filterText.text = filter
+
+        holder.itemView.isSelected = selectedPosition == position
+        if (selectedPosition == position) {
+            holder.itemView.setBackgroundResource(R.drawable.filter_item_bg_selected)
+            holder.filterText.setTextColor(ContextCompat.getColor(context, R.color.green))
+        } else {
+            holder.itemView.setBackgroundResource(R.drawable.filter_item_bg)
+            holder.filterText.setTextColor(ContextCompat.getColor(context, R.color.white))
+        }
+
+        holder.itemView.setOnClickListener {
+            if (selectedPosition == position) {
+                return@setOnClickListener
+            }
+
+            val previousPosition = selectedPosition
+            selectedPosition = position
+
+            notifyItemChanged(previousPosition)
+            notifyItemChanged(selectedPosition)
+
+            mListener?.onFilterSelected(filter)
+        }
+    }
+
+    override fun getItemCount(): Int {
+        return filters.size
+    }
+
+    inner class FilterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val filterText: TextView = itemView.findViewById(R.id.filter_text)
+    }
+    fun setSelectedPosition(position: Int) {
+        val previousPosition = selectedPosition
+        selectedPosition = position
+        notifyItemChanged(previousPosition)
+        notifyItemChanged(selectedPosition)
+    }
+}
