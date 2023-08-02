@@ -1,0 +1,533 @@
+class Utility {
+    companion object {
+        fun showProgressView(context: Context) : CustomAlertDialog {
+
+            val progressDialog = CustomAlertDialog(context, R.style.progress_dialog)
+            progressDialog.setContentView(R.layout.loading_layout)
+            progressDialog.window?.setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT)
+            progressDialog.setCanceledOnTouchOutside(true)
+
+            return progressDialog
+        }
+
+        fun showSnackBar(view: View, msg:String, context: Context) {
+            if (view != null && context != null) {
+                val snackbar = Snackbar.make(view, LanguagePack.getString(msg), Snackbar.LENGTH_LONG)
+                val sbView = snackbar.view
+                val textView = sbView.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
+                sbView.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                textView?.gravity = Gravity.CENTER
+                textView?.textSize = 18.0f
+                textView?.setTextColor(context.resources.getColor(R.color.white_color_text))
+                snackbar.show()
+            }
+        }
+
+        fun slideActivityLeftToRight(activity: Activity) {
+            activity.overridePendingTransition(R.anim.left_to_right_start, R.anim.right_to_left_end)
+        }
+
+        fun slideActivityRightToLeft(activity: Activity) {
+            activity.overridePendingTransition(R.anim.right_to_left_start, R.anim.left_to_right_end)
+        }
+
+        fun slideActivityBottomToTop(activity: Activity) {
+            activity.overridePendingTransition(R.anim.slide_in_bottom, R.anim.slide_out_bottom)
+        }
+
+        fun slideActivityTopToBottom(activity: Activity) {
+            activity.overridePendingTransition(R.anim.slide_down, R.anim.slide_down_out)
+        }
+        fun fadeActivityOutToIn(activity: Activity) {
+            activity.overridePendingTransition(R.anim.fade_out, R.anim.fade_out)
+        }
+
+        @SuppressLint("NewApi")
+        fun getPath(context: Context, uri: Uri): String? {
+            val isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+
+            if (isKitKat) {
+                if (DocumentsContract.isDocumentUri(context, uri)) {
+                    if (isExternalStorageDocument(uri)) {
+                        val docId = DocumentsContract.getDocumentId(uri)
+                        val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                        val type = split[0]
+
+                        if ("primary".equals(type, ignoreCase = true)) {
+                            return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                        }
+
+                    } else if (isDownloadsDocument(uri)) {
+
+                        val id = DocumentsContract.getDocumentId(uri)
+                        val contentUri = ContentUris.withAppendedId(
+                                Uri.parse("content://downloads/public_downloads"),
+                            java.lang.Long.valueOf(id)
+                        )
+
+                        return getDataColumn(context, contentUri, null, null)
+                    } else if (isMediaDocument(uri)) {
+                        val docId = DocumentsContract.getDocumentId(uri)
+                        val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                        val type = split[0]
+
+                        var contentUri: Uri? = null
+                        if ("image" == type) {
+                            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        } else if ("video" == type) {
+                            contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        } else if ("audio" == type) {
+                            contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                        }
+
+                        val selection = "_id=?"
+                        val selectionArgs = arrayOf(split[1])
+
+                        return getDataColumn(context, contentUri, selection, selectionArgs)
+                    }
+                } else if ("content".equals(uri.scheme, ignoreCase = true)) {
+                    return getDataColumn(context, uri, null, null)
+                } else if ("file".equals(uri.scheme, ignoreCase = true)) {
+                    return uri.path
+                }
+
+            } else if ("content".equals(uri.scheme, ignoreCase = true)) {
+                return getDataColumn(context, uri, null, null)
+            } else if ("file".equals(uri.scheme, ignoreCase = true)) {
+                return uri.path
+            }
+            return null
+        }
+
+        fun getDataColumn(context: Context, uri: Uri?, selection: String?,
+                          selectionArgs: Array<String>?): String? {
+
+            var cursor: Cursor? = null
+            val column = "_data"
+            val projection = arrayOf(column)
+
+            try {
+                cursor = context.contentResolver.query(uri!!, projection, selection, selectionArgs, null)
+                if (cursor != null && cursor.moveToFirst()) {
+                    val column_index = cursor.getColumnIndexOrThrow(column)
+                    return cursor.getString(column_index)
+                }
+            } finally {
+                if (cursor != null)
+                    cursor.close()
+            }
+            return null
+        }
+
+
+
+        fun isExternalStorageDocument(uri: Uri): Boolean {
+            return "com.android.externalstorage.documents" == uri.authority
+        }
+
+
+        fun isDownloadsDocument(uri: Uri): Boolean {
+            return "com.android.providers.downloads.documents" == uri.authority
+        }
+
+
+        fun isMediaDocument(uri: Uri): Boolean {
+            return "com.android.providers.media.documents" == uri.authority
+        }
+
+
+        fun hasText(editText: EditText) : Boolean {
+            if (editText == null) {
+                return false
+            } else if (TextUtils.isEmpty(editText.text)) {
+                return false
+            }
+
+            return true
+        }
+
+
+        fun showSlidingProgressIndicator(context: Context) : SlidingLoader {
+            return SlidingLoader(context, 40, 10,
+                    ContextCompat.getColor(context, R.color.colorPrimary),
+                    ContextCompat.getColor(context, R.color.colorPrimary),
+                    ContextCompat.getColor(context, R.color.colorPrimary)).apply {
+                animDuration = 1000
+                distanceToMove = 12
+            }
+        }
+
+
+        fun hideKeyboard(activity: Activity) {
+            if(activity != null) {
+                val imm: InputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                 var view = activity.currentFocus
+                 if (view == null) {
+                    view = View(activity)
+                }
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0)
+            }
+        }
+
+
+        fun hideKeyboardFromDialogs(activity: Activity) {
+            if (activity != null) {
+                val imm: InputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                 imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0)
+            }
+        }
+
+
+        fun dismissKeyboardFromSettings(activity: Activity, view: View) {
+            val imm: InputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+             imm.hideSoftInputFromWindow(activity.window.decorView
+                    .windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+        }
+
+        fun isValidEmail(email: String): Boolean {
+            return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        }
+
+        fun isValidAlphaNumeric(username: String): Boolean {
+            val regex = "^[a-zA-Z0-9]+$"
+            val a = Pattern.compile(regex).matcher(username).matches()
+            return a
+        }
+
+        fun animateProgressView(context: Context, progressView: ImageView) : Animation {
+            val animUpDown = AnimationUtils.loadAnimation(context,
+                    R.anim.up_down)
+            animUpDown?.repeatCount = Animation.INFINITE
+            animUpDown?.repeatMode = Animation.INFINITE
+            animUpDown?.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation) {}
+
+                override fun onAnimationEnd(animation: Animation) {
+                    if(animUpDown != null)
+                        progressView.startAnimation(animUpDown)
+                }
+
+                override fun onAnimationRepeat(animation: Animation) {}
+            })
+            progressView.startAnimation(animUpDown)
+
+            return animUpDown
+        }
+
+        fun getCircularProgressDrawable(context: Context): CircularProgressDrawable {
+            val circularProgressDrawable = CircularProgressDrawable(context)
+            circularProgressDrawable.strokeWidth = 5f
+            circularProgressDrawable.centerRadius = 30f
+            circularProgressDrawable.start()
+            return circularProgressDrawable
+        }
+
+        fun shareProduct(url: String, appName: String, context: Context) {
+            val shareBody = "Have a look of this product on " + appName +"\n $url"
+            val sharingIntent = Intent(Intent.ACTION_SEND)
+            sharingIntent.type = "text/plain"
+            sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, appName)
+            sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody)
+            context.startActivity(Intent.createChooser(sharingIntent, context.resources.getString(R.string.share_using)))
+        }
+
+
+        fun getProgressDialog(context: Context, message: String): IOSDialog {
+            return IOSDialog.Builder(context)
+                    .setTitle("")
+                    .setSpinnerColorRes(R.color.white_color_text)
+                    .setMessageColorRes(R.color.white_color_text)
+                    .setMessageContent(message)
+                    .setCancelable(true)
+                    .setMessageContentGravity(Gravity.END)
+                    .build()
+        }
+
+        fun checkLocationAndPhonePermission(MY_PERMISSIONS_REQUEST_LOCATION : Int, activity: Activity): Boolean {
+            if (ContextCompat.checkSelfPermission(activity,
+                            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(activity,
+                            Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED
+                    || ContextCompat.checkSelfPermission(activity,
+                            Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                    || ContextCompat.checkSelfPermission(activity,
+                            Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+                if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                                Manifest.permission.ACCESS_FINE_LOCATION) || ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                                Manifest.permission.CALL_PHONE) || ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                                Manifest.permission.CAMERA) || ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                                Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    ActivityCompat.requestPermissions(activity,
+                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.CALL_PHONE,
+                                    Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE),
+                            MY_PERMISSIONS_REQUEST_LOCATION)
+                } else {
+                    ActivityCompat.requestPermissions(activity,
+                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.CALL_PHONE,
+                                    Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE),
+                            MY_PERMISSIONS_REQUEST_LOCATION)
+                }
+                return false
+            } else {
+                return true
+            }
+        }
+
+        fun decodeUnicode(theString: String): String {
+            if (theString != null) {
+                return Html.fromHtml(theString).toString()
+            }
+            return ""
+        }
+
+        fun removeProgressBar(view: View) {
+            if(view != null) view.visibility = View.GONE
+        }
+
+        fun valueInDp(sizeInDp : Int, context: Context): Int {
+            val scale = context.resources.displayMetrics.density
+            return ((sizeInDp*scale + 0.5f).toInt())
+        }
+
+        fun isNetworkAvailable(context: Context): Boolean {
+            val connectivityManager: ConnectivityManager = context.getSystemService (Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetworkInfo = connectivityManager.activeNetworkInfo
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected
+        }
+
+    }
+}
+
+fun Context.getDeviceId(): String {
+    return Settings.Secure.getString(
+        contentResolver,
+            Settings.Secure.ANDROID_ID)
+}
+
+fun Context.sendTokenToServer() {
+    RetrofitController.addDeviceToken(SessionState.instance.userId, SessionState.instance.displayName,
+            getDeviceId(), SessionState.instance.token, object : Callback<AddTokenStatus> {
+        override fun onFailure(call: Call<AddTokenStatus>?, t: Throwable?) {
+            if (Utility.isNetworkAvailable(this@sendTokenToServer)) {
+                sendTokenToServer()
+            }
+        }
+
+        override fun onResponse(call: Call<AddTokenStatus>?, response: Response<AddTokenStatus>?) {
+            if (response != null && response.isSuccessful) {
+                SessionState.instance.saveValuesToPreferences(this@sendTokenToServer, AppConstants.Companion.PREFERENCES.DEVICE_ID.toString(),
+                        SessionState.instance.token)
+            } else if (Utility.isNetworkAvailable(this@sendTokenToServer)) {
+                sendTokenToServer()
+            }
+        }
+    })
+}
+
+fun RecyclerView.initScrollListener(onProductLoading: LazyProductLoading) {
+    addOnScrollListener( object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx:Int, dy:Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            if (dy > 0) {
+                var gridLayoutManager = recyclerView.layoutManager as GridLayoutManager
+                if (onProductLoading != null && gridLayoutManager != null) {
+                    onProductLoading.onProductLoadRequired(gridLayoutManager.findLastCompletelyVisibleItemPosition())
+                }
+            }
+        }
+    })
+}
+
+fun NestedScrollView.initNestedScrollListener(onProductLoading: LazyProductLoading) {
+    setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+        if (scrollY > oldScrollY) {
+
+        }
+        if (scrollY < oldScrollY) {
+
+        }
+
+        if (scrollY == 0) {
+
+        }
+
+        if ((scrollY >= (v.getChildAt(v.childCount - 1).measuredHeight / 3)  - (v.measuredHeight / 3)) &&
+                scrollY > oldScrollY) {
+            onProductLoading.onProductLoadRequired(Integer.MAX_VALUE)
+        }
+    })
+}
+
+fun Context.getCurrentCountry(): String {
+    if (AppConstants.YES.equals(SessionState.instance.detectLiveLocation)) {
+        try {
+            var tm = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            var simCountry = tm.simCountryIso
+            if (simCountry != null && simCountry.length == 2) {
+                return simCountry.lowercase(Locale.getDefault())
+            }
+            else if (tm.phoneType != TelephonyManager.PHONE_TYPE_CDMA) {
+                var networkCountry = tm.networkCountryIso
+                if (networkCountry != null && networkCountry.length == 2) {
+                    return networkCountry.lowercase(Locale.getDefault())
+                }
+            }
+        }
+        catch (e: Exception) { }
+        return "in"
+    } else  {
+        return SessionState.instance.defaultCountry.lowercase(Locale.getDefault())
+    }
+}
+
+// implementation 'com.asksira.android:bsimagepicker:1.1.0'
+
+fun getSingleImagePickerDialog(tag: String) : BSImagePicker {
+    return BSImagePicker.Builder(BuildConfig.APPLICATION_ID + ".fileprovider")
+            .setMaximumDisplayingImages(Integer.MAX_VALUE)
+            .setSpanCount(3)
+            .setGridSpacing(Utils.dp2px(2))
+            .setPeekHeight(Utils.dp2px(360))
+
+            .hideGalleryTile()
+            .setTag(tag)
+
+            .build()
+}
+
+fun getMultiImagePickerDialog(tag: String) : BSImagePicker {
+    return BSImagePicker.Builder(BuildConfig.APPLICATION_ID + ".fileprovider")
+            .isMultiSelect
+            .setMaximumDisplayingImages(Integer.MAX_VALUE)
+            .setSpanCount(3)
+            .setGridSpacing(Utils.dp2px(2))
+            .setPeekHeight(Utils.dp2px(360))
+            .setMinimumMultiSelectCount(1)
+            .setMultiSelectDoneTextColor(R.color.dark_green)
+            .hideCameraTile()
+            .hideGalleryTile()
+            .setTag(tag)
+
+            .build()
+}
+
+fun Context.isLocationEnabled() : Boolean {
+     var  locationManager: LocationManager? = null
+    var gps_enabled = false
+     var network_enabled = false
+
+     if(locationManager ==null)
+         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+     try{
+         gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+     }catch(ex: Exception){
+
+     }
+
+     try{
+        network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+     }catch(ex: Exception){
+
+     }
+
+     return gps_enabled || network_enabled
+}
+
+fun checkIfNumber(price : String) : Boolean {
+    val pattern : Pattern = Pattern.compile("\\d+(?:\\.\\d+)?")
+    return price.matches(pattern.toRegex())
+}
+
+fun Context.isOver600dp(): Boolean {
+    val resources = this.resources
+    val displayMetrics = resources.displayMetrics
+    return displayMetrics.widthPixels / displayMetrics.density >= 600
+}
+
+fun Context.getDefaultFont() = ResourcesCompat.getFont(this, R.font.roboto_regular)
+
+
+fun Context.calculateNoOfColumns(columnWidthDp: Float): Int {
+    val displayMetrics = resources.displayMetrics
+    val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
+    return (screenWidthDp / columnWidthDp + 0.5).toInt()
+}
+
+fun Context.showAppUpgradeAlert() {
+    val versionUpgradeDialog = CustomAlertDialog(this, R.style.custom_login_dialog)
+    versionUpgradeDialog.setContentView(R.layout.custom_alert_version_upgrade)
+    versionUpgradeDialog.window?.setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT)
+    versionUpgradeDialog.window?.setBackgroundDrawable(ColorDrawable(resources.getColor(android.R.color.transparent)))
+
+    versionUpgradeDialog.show()
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val versionUpgradeText = versionUpgradeDialog.findViewById<AppCompatTextView>(R.id.new_version_text)
+        versionUpgradeText.justificationMode = LineBreaker.JUSTIFICATION_MODE_NONE
+    }
+
+    val submit = versionUpgradeDialog.findViewById<AppCompatButton>(R.id.process_upgrade)
+    submit.setOnClickListener(View.OnClickListener {
+        val appPackageName = packageName
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+        } catch (anfe: android.content.ActivityNotFoundException) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
+        }
+
+        versionUpgradeDialog.dismiss()
+    })
+}
+
+fun isNumber(value: String): Boolean {
+    var isNumber = true
+    try {
+        value.toInt()
+    } catch (e: NumberFormatException) { isNumber = false}
+
+    return isNumber
+}
+
+@Suppress("DEPRECATION")
+fun Context.isInternetAvailable(): Boolean {
+    var result = false
+    val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val networkCapabilities = connectivityManager.activeNetwork ?: return false
+        val actNw =
+                connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+        result = when {
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            else -> false
+        }
+    } else {
+        connectivityManager.run {
+            connectivityManager.activeNetworkInfo?.run {
+                result = when (type) {
+                    ConnectivityManager.TYPE_WIFI -> true
+                    ConnectivityManager.TYPE_MOBILE -> true
+                    ConnectivityManager.TYPE_ETHERNET -> true
+                    else -> false
+                }
+
+            }
+        }
+    }
+
+    return result
+}
+
+fun getSpannableString(normalString: String?, spannedString: String?): SpannableStringBuilder {
+    if (normalString.isNullOrEmpty() || spannedString.isNullOrEmpty()) {
+        return SpannableStringBuilder("")
+    }
+    val str = String.format(normalString, spannedString)
+    val sb = SpannableStringBuilder(str)
+    val bss = StyleSpan(Typeface.BOLD)
+    sb.setSpan(bss, (normalString.length - 4), str.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+    return sb
+}
+
