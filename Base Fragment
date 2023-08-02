@@ -1,0 +1,48 @@
+---------------------- Base Fragment ---------------------------------------------------
+
+abstract class AiBuilderFragment : Fragment() {
+    var mContext : Context? = null
+    var mActivity : AiBuilderActivity? = null
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(setLayoutView(), container, false)
+    }
+
+    protected abstract fun setLayoutView(): Int
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        mContext = activity
+        if (activity is AiBuilderActivity) {
+            mActivity = activity as AiBuilderActivity
+        }
+
+        initialize(savedInstanceState)
+    }
+
+    protected abstract fun initialize(savedInstanceState: Bundle?)
+
+    fun startActivity(clazz: Class<out Activity>, isNewTask:Boolean) {
+        val intent = Intent(context, clazz)
+        if(isNewTask) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+    }
+
+    fun startActivity(clazz: Class<out Activity>, extra:Bundle) {
+        val intent = Intent(context, clazz)
+        intent.putExtra(AppConstants.BUNDLE, extra)
+        startActivity(intent)
+    }
+
+    fun startActivity(clazz: Class<out Activity>, isNewTask:Boolean, bundle: Bundle) {
+        val intent = Intent(context, clazz)
+        intent.putExtra(AppConstants.BUNDLE, bundle)
+        if(isNewTask) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+    }
+}
