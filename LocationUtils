@@ -1,0 +1,50 @@
+
+class LocationUtils {
+    fun getCurrentLatLng(context : Context,onCallBack: OnGetLatLngCallBack) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            onCallBack.onPermissionDenied()
+        } else {
+            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                buildAlertMessageNoGps(context)
+                Log.d("GetMyLatLng", "GPS_PROVIDER: OFF ")
+            } else {
+                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+                fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                    if (location != null) {
+                        onCallBack.onSuccess(LatLng(location.latitude, location.longitude))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun buildAlertMessageNoGps(context: Context) {
+        val builder = AlertDialog.Builder(context)
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
+            .setCancelable(false)
+            .setPositiveButton(
+                "Yes"
+            ) { _: DialogInterface?, id: Int ->
+                context.startActivity(
+                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                )
+            }
+            .setNegativeButton("No") { dialog: DialogInterface, id: Int -> dialog.cancel() }
+        val alert = builder.create()
+        alert.show()
+    }
+
+    interface OnGetLatLngCallBack {
+        fun onSuccess(latLng: LatLng?)
+        fun onPermissionDenied()
+    }
+}
