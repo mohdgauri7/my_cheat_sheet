@@ -1,0 +1,20 @@
+// implementation 'com.android.volley:volley:1.1.1'
+
+
+
+private fun fetchLanguagePackDetails() {
+        var mRequestQueue = Volley.newRequestQueue(this)
+
+        var mStringRequest = JsonArrayRequest(Request.Method.GET, AppConstants.BASE_URL + AppConstants.FETCH_LANGUAGE_PACK_URL, null, com.android.volley.Response.Listener<JSONArray> { response ->
+            if (response != null) {
+                LanguagePack.instance.saveLanguageData(this@SplashActivity, response.toString())
+                LanguagePack.instance.setLanguageData(response.toString())
+                navigateToNextScreen()
+            }
+        }, com.android.volley.Response.ErrorListener {
+            navigateToNextScreen()
+
+        })
+
+        mRequestQueue.add(mStringRequest)
+    }
