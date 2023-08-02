@@ -1,0 +1,180 @@
+// this is Retrofit controller class
+// retrofit
+
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+
+// GSON
+
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+// coroutine
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
+
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+
+
+
+
+class RetrofitController {
+    companion object {
+        private val mRetrofit: Retrofit = getInstance()
+        private val webserviceApi = mRetrofit.create<WebServiceApiInterface>(WebServiceApiInterface::class.java)
+
+        fun getInstance(): Retrofit {
+            if (mRetrofit == null) {
+                val gson = GsonBuilder()
+                        .setLenient()
+                        .create()
+
+                return Retrofit.Builder()
+                        .baseUrl(BASE_URL)
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .client(getOkHttpClientBuilder().build())
+                        .build()
+            }
+
+            return mRetrofit
+        }
+
+        fun registerUser(userData: UserRegistrationData, registerUserCallBack: Callback<UserRegistrationStatus>) {
+            val call = webserviceApi.registerUser(userData.name!!, userData.email!!, userData.username!!, userData.password!!, userData.fbLogin!!)
+            call.enqueue(registerUserCallBack)
+        }
+
+        fun loginUserUsingEmail(userData: UserLoginData, registerUserCallBack: Callback<UserLoginStatus>) {
+            val call = webserviceApi.loginUserUsingEmail(userData.email!!, userData.password!!)
+            call.enqueue(registerUserCallBack)
+        }
+
+    }
+}
+
+fun getOkHttpClientBuilder(): OkHttpClient.Builder {
+    val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+        override fun getAcceptedIssuers(): Array<X509Certificate> {
+            return arrayOf()
+        }
+
+        @Throws(CertificateException::class)
+        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+        }
+
+        @Throws(CertificateException::class)
+        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+
+        }
+    })
+
+
+
+    val trustManagerFactory =
+        TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+    trustManagerFactory.init(null as KeyStore?)
+    val trustManagers = trustManagerFactory.trustManagers
+    check(!(trustManagers.size != 1 || trustManagers[0] !is X509TrustManager)) {
+        "Unexpected default trust managers:" + Arrays.toString(
+            trustManagers
+        )
+    }
+    val trustManager = trustManagers[0] as X509TrustManager
+    val sslContext = SSLContext.getInstance("SSL")
+    sslContext.init(null, arrayOf<TrustManager>(trustManager), null)
+    val sslSocketFactory = sslContext.socketFactory
+
+    val builder = OkHttpClient.Builder()
+    val client = builder.cookieJar(UvCookieJar())
+
+    return builder.sslSocketFactory(sslSocketFactory, trustManager)
+}
+
+private class UvCookieJar : CookieJar {
+
+    private val cookies = mutableListOf<Cookie>()
+
+    override fun saveFromResponse(url: HttpUrl, cookieList: List<Cookie>) {
+        cookies.clear()
+        cookies.addAll(cookieList)
+    }
+
+    override fun loadForRequest(url: HttpUrl): List<Cookie> =
+        cookies
+}
+
+--------------------------------------------------   WebServiceApiInterface --------------------------------------------------------
+
+interface WebServiceApiInterface {
+
+    @POST(AppConstants.REGISTER_URL)
+    fun registerUser(@Query("name") name: String, @Query("email") email: String,
+                     @Query("username") username: String, @Query("password") password: String, @Query("fb_login") fbLogin: String): Call<UserRegistrationStatus>
+
+    @GET(AppConstants.LOGIN_URL)
+    fun loginUserUsingUsername(@Query("username") name: String, @Query("password") email: String): Call<UserLoginStatus>
+
+
+    @Multipart
+    @POST(AppConstants.UPLOAD_PRODUCT_PIC_URL)
+    fun updateUserPostedProductPic(@Part image: MultipartBody.Part): Call<UploadProductModel>
+
+
+}
+
+
+--------------------------------   Get File From URI ------------------------------------------------------
+
+
+fun createFileFromUri(uri: Uri, fileName: String): File {
+        val contentResolver = context?.contentResolver
+        val inputStream = contentResolver?.openInputStream(uri)
+        val fileExtension = getFileExtention(uri,contentResolver)
+        val file = File(context!!.filesDir, "$fileName.$fileExtension")
+        val outputStream = FileOutputStream(file)
+
+        inputStream?.use { input ->
+            outputStream.use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        return file
+    }
+
+
+-------------------------------------------- API Calling --------------------------------------------------
+
+
+                    val requestFile = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                    val body = MultipartBody.Part.createFormData("fileToUpload", file.name, requestFile)
+                    RetrofitController.updateUserProfilePic(body, object : Callback<ProductUploadProductModel> {
+                        override fun onFailure(
+                            call: Call<ProductUploadProductModel>,
+                            t: Throwable
+                        ) {
+                            if (isAdded && isVisible) {
+                                dismissProgressDialog()
+                                Utility.showSnackBar(fragment_settings_user_parent_layout, getString(R.string.internet_issue), context!!)
+                            }
+                            dismissProgressDialog()
+                        }
+
+                        override fun onResponse(
+                            call: Call<ProductUploadProductModel>,
+                            response: Response<ProductUploadProductModel>
+                        ) {
+                            if (isAdded && isVisible) {
+                                if (response != null && response.isSuccessful) {
+                                    Glide.with(profile_icon_image_view.context).load(uri).apply(RequestOptions().circleCrop()).into(profile_icon_image_view)
+                                    val responseBody = response.body()
+                                    if (responseBody != null && AppConstants.SUCCESS.equals(responseBody.status) && context != null) {
+                                        SessionState.instance.profilePicUrl = responseBody.url!!
+                                        SessionState.instance.saveValuesToPreferences(context!!, AppConstants.Companion.PREFERENCES.PROFILE_PIC.toString(),
+                                            SessionState.instance.profilePicUrl)
+                                    }
+                                } else {
+                                    Utility.showSnackBar(fragment_settings_user_parent_layout, getString(R.string.some_wrong), context!!)
+                                }
+                                dismissProgressDialog()
+                            }
+                        }
+                    })
