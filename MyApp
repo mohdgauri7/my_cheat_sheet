@@ -1,0 +1,19 @@
+class MyApp : Application() {
+
+    init {
+        instance = this
+    }
+    companion object {
+        private var instance: MyApp? = null
+
+        fun applicationContext() : Context = instance!!.applicationContext
+
+        fun toast(msg: String): Toast =Toast.makeText(instance!!.applicationContext,msg,Toast.LENGTH_SHORT)
+    }
+    override fun onCreate() {
+        super.onCreate()
+
+        
+
+    }
+}
