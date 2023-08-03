@@ -67,13 +67,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-
-
-
-
-
-
-
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
@@ -108,9 +101,100 @@
         app:layout_anchor="@id/bottomAppBar"
         app:tint="@color/white" />
 
-
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+
+---------------------------- Kotlin Activity Code -----------------------------------------
+    private val fragmentOne = Frag_One()
+    private val fragmentTwo = Frag_two()
+    private val fragmentThree = Frag_three()
+    private val fragmentFour = Frag_four()
+    private val fragmentFive = Frag_five()
+    private lateinit var fab: FloatingActionButton
+
+    private lateinit var bottom_navigation_menu: BottomNavigationView
+
+
+
+      // override onCreate code ---
+
+       commitFragment(0)
+
+        bottom_navigation_menu = findViewById(R.id.bottom_navigation_menu)
+        fab = findViewById(R.id.fab)
+
+        fab.setOnClickListener {
+            commitFragment(5)
+        }
+
+        bottom_navigation_menu.setOnNavigationItemSelectedListener { menuItem ->
+            if (menuItem.itemId != R.id.action_upload_product) {
+                menuItem.isChecked = true
+            }
+            when (menuItem.itemId) {
+                R.id.action_home -> {
+                    commitFragment(0)
+                    true
+                }
+                R.id.speech -> {
+                    commitFragment(1)
+                    true
+                }
+                R.id.action_upload_product -> {
+                    commitFragment(2)
+                    true
+                }
+                R.id.action_chat -> {
+                    commitFragment(3)
+                    true
+                }
+                R.id.action_settings -> {
+                    commitFragment(4)
+                    true
+                }
+                else -> {
+                    commitFragment(5)
+                    true
+                }
+            }
+        }
+
+
+private fun commitFragment(tabPosition: Int) {
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        when (tabPosition) {
+            0 -> fragmentTransaction.replace(
+                R.id.fragment_container,
+                fragmentOne,
+                fragmentOne::class.simpleName
+            )
+            1 -> fragmentTransaction.replace(
+                R.id.fragment_container,
+                fragmentTwo,
+                fragmentTwo::class.simpleName
+            )
+            3 -> fragmentTransaction.replace(
+                R.id.fragment_container,
+                fragmentThree,
+                fragmentThree::class.simpleName
+            )
+            4 -> fragmentTransaction.replace(
+                R.id.fragment_container,
+                fragmentFour,
+                fragmentFour::class.simpleName
+            )
+            5 -> fragmentTransaction.replace(
+                R.id.fragment_container,
+                fragmentFive,
+                fragmentFive::class.simpleName
+            )
+            else -> {
+
+            }
+        }
+        fragmentTransaction.commit()
+    }
 
 
 
