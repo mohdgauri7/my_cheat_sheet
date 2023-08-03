@@ -1,47 +1,36 @@
 
-object Shared {
 
-    private lateinit var prefs: SharedPreferences
-    private const val PREFS_NAME = "params"
+class CustomSharedPreferance() {
+    companion object{
+        private var prefName: String = "CustomeSharedPreferance"
+        private var pref : SharedPreferences = MyApp.applicationContext()
+            .getSharedPreferences(prefName, Context.MODE_PRIVATE)
 
-    // save data constants keys
-    private const val USER_ID = "USER_ID"
-    private const val TOKEN = "token"
+        // used constant keys
+        private const val USER_ID: String = "USER_ID"
+        private const val USER_NAME: String = "USER_NAME"
+        private const val USER_AGE: String = "USER_AGE"
 
-    fun init(context: Context) {
-        prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    }
+        fun setUserId(userId: String) = pref.edit().putString(USER_ID,userId).commit()
 
-    fun getUserID(): String? {
-        return prefs.getString(USER_ID, null)
-    }
+        fun getUserId() = pref.getString(USER_ID, "null")
 
-    fun getTocken(): Long? {
-        return prefs.getLong(TOKEN, 0)
-    }
+        fun setUserName(name: String) = pref.edit().putString(USER_NAME,name).apply()
 
-    fun setUserId(value: String) {
-        val prefsEditor: SharedPreferences.Editor = prefs.edit()
-        with(prefsEditor) {
-            putString(USER_ID, value)
-            commit()
+        fun getUserName() = pref.getString(USER_NAME,"null")
+
+        fun setUserAge(age: Int) = pref.edit().putInt(USER_AGE,age).commit()
+
+        fun getUserAge() = pref.getInt(USER_AGE,0)
+
+
+        fun clearPreferances(){
+            val prefsEditor: SharedPreferences.Editor = pref.edit()
+            prefsEditor.clear()
+            prefsEditor.apply()
+            prefsEditor.commit()
         }
+
+
     }
-
-    fun setTocken(value: Long) {
-        val prefsEditor: SharedPreferences.Editor = prefs.edit()
-            with(prefsEditor) {
-            putLong(TOKEN, value)
-            commit()
-        }
-    }
-
-    fun clearPreferances(){
-        val prefsEditor: SharedPreferences.Editor = prefs.edit()
-        prefsEditor.clear()
-        prefsEditor.apply()
-        prefsEditor.commit()
-    }
-
-
 }
