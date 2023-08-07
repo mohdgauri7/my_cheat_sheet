@@ -1,3 +1,9 @@
+1) connect project to firebase database
+
+2) get json file from firebase database and paste it in app folder
+
+3) Enable google auth from firebase authentication section
+
 --------------------------  XML Code ----------------------------------------
  <LinearLayout
             android:id="@+id/google_sign_in_button"
