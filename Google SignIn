@@ -1,0 +1,130 @@
+--------------------------  XML Code ----------------------------------------
+ <LinearLayout
+            android:id="@+id/google_sign_in_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginEnd="30dp"
+            android:background="@drawable/rounded_background_blue"
+            android:backgroundTint="@color/mainColor"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/optionDivider">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_margin="10dp"
+                android:src="@drawable/google_plus_logo"
+                app:tint="@color/white" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_marginVertical="3dp"
+                android:background="#5ba6fc" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingEnd="15dp"
+                android:text="@string/google"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+
+
+---------------------------------------------- Kotlin Code -----------------------------------------------------
+private lateinit var mGoogleSignInClient: GoogleSignInClient
+companion object {
+        const val RC_SIGN_IN = 9001
+    }
+private var isPasswordShown = false
+
+ setUpGoogleLogin()
+
+
+ private fun setUpGoogleLogin() {
+        val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .build()
+        mGoogleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
+
+        google_sign_in_button?.setOnClickListener {
+            googleSignIn()
+        }
+    }
+
+  private fun googleSignIn() {
+        val signInIntent = mGoogleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
+
+    }
+
+ private fun googleSignOut() {
+        mGoogleSignInClient.signOut()
+            .addOnCompleteListener(this) {}
+
+    }
+
+
+ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RC_SIGN_IN) {
+            if (resultCode == Activity.RESULT_OK) {
+                val task: Task<GoogleSignInAccount> =
+                    GoogleSignIn.getSignedInAccountFromIntent(data)
+                handleGoogleSignInResult(task)
+            } else {
+                Utility.showSnackBar(
+                    login_screen_parent_layout,
+                    LanguagePack.getString("You have cancelled Google login, please login to continue"),
+                    this@LoginActivity
+                )
+            }
+        } else {
+            callbackManager?.onActivityResult(requestCode, resultCode, data)
+        }
+
+
+    }
+
+
+
+ private fun handleGoogleSignInResult(completedTask: Task<GoogleSignInAccount>) {
+        if (!this.isFinishing) {
+            try {
+                val account = completedTask.getResult(ApiException::class.java)
+                val email = account?.email
+                val userData = UserRegistrationData()
+                userData.email = email ?: ""
+                userData.username =
+                    if (email != null && email.isNotEmpty()) email.split("@")[0] + nextInt(
+                        10000,
+                        1000000
+                    ).toString() else UUID.randomUUID().toString()
+                userData.name = account?.displayName
+                userData.password = UUID.randomUUID().toString()
+                userData.fbLogin = "1"
+                if (userData.email!!.isNotEmpty()) {
+                    loadingSpinner.visibility = View.VISIBLE
+                    googleSignOut()
+                    registerUser(userData)
+                }
+            } catch (e: ApiException) {
+                Log.d("Awaad", e.message.toString())
+            }
+        }
+    }
+
+
+
+
+
