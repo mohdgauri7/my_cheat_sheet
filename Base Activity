@@ -952,5 +952,27 @@ abstract class AiBuilderActivity : AppCompatActivity(), PaymentResultListener {
         window.statusBarColor = ContextCompat.getColor(this, R.color.colorPrimary)
     }
 
+    fun toast(message: String){
+        Toast.makeText(this,message,Toast.LENGTH_SHORT).show()
+    }
+
+
+     fun getHashKey(){
+        try {
+            val info = packageManager.getPackageInfo(
+                packageName,
+                PackageManager.GET_SIGNATURES)
+            for (signature in info.signatures) {
+                val md = MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT))
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+
+        } catch (e: NoSuchAlgorithmException) {
+            
+        }
+    }
+
 
 }
