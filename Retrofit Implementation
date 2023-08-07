@@ -142,6 +142,23 @@ fun createFileFromUri(uri: Uri, fileName: String): File {
 
 
 -------------------------------------------- API Calling --------------------------------------------------
+RetrofitController.getMoview("69d66957eebff9666ea46bd464773cf0", object : Callback<Movies> {
+            override fun onResponse(call: Call<Movies>, response: Response<Movies>) {
+                if (response.body()!=null){
+                    movieLiveData.value = response.body()!!.results
+                }
+                else{
+                    return
+                }
+
+            }
+            override fun onFailure(call: Call<Movies>, t: Throwable) {
+
+            }
+        })
+
+
+
 
 
                     val requestFile = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
