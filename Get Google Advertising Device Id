@@ -1,0 +1,16 @@
+AsyncTask.execute(Runnable {
+            try {
+                val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(this)
+                val adId = if (adInfo != null) adInfo.id else null
+
+                Log.d("AdvertisingId",adId.toString())
+                // Use the advertising id
+            } catch (exception: IOException) {
+                Log.d("AdvertisingId","Exception : ${exception.toString()}")
+                // Error handling if needed
+            } catch (exception: GooglePlayServicesRepairableException) {
+                Log.d("AdvertisingId","Exception : ${exception.toString()}")
+            } catch (exception: GooglePlayServicesNotAvailableException) {
+                Log.d("AdvertisingId","Exception : ${exception.toString()}")
+            }
+        })
